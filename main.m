@@ -1,13 +1,10 @@
-% =========================================================================
-% Simulador
-% =========================================================================
 clear; 
 close all; 
 clc;
 disp('Carregando parâmetros do sistema...');
 [p, X0, tspan] = init_params();
 
-% Configuracao do tenpo
+% Configuracao do tempo
 fps_fisica = 120;          
 dt = 1 / fps_fisica;     % Quantos periodos de amostragem tenho em um segundo
 fps_tela = 30;            % Atualizacao para a tela
@@ -21,9 +18,7 @@ contador_loops = 0;
 t_log = t_current;
 X_log = X_current';
 
-% =========================================================================
 % Animacao 3D
-% =========================================================================
 if p.sim_real_time == 1
     figure('Name', 'Simulador 3D - VANT', 'NumberTitle', 'off', 'Position', [1060, 50, 600, 600]);
     ax = axes('XLim', [0 p.map_size], 'YLim', [0 p.map_size], 'ZLim', [0 p.map_size]);
@@ -56,10 +51,7 @@ if p.sim_real_time == 1
 else
     disp('Modo de simulação rápida (instantânea) ativado. Calculando...');
 end
-
-% =========================================================================
-% Loop de chamada do Runge Kutta de quarta ordem
-% =========================================================================
+% Loop da resolucao do runge-kutta
 if p.sim_real_time == 1
     disp('Iniciando a simulação em malha fechada sincronizada...');
 end
@@ -80,7 +72,7 @@ while t_current < t_final
     t_log = [t_log; t_current];
     X_log = [X_log; X_current'];
     
-    % 2. Atualização da Tela (Executada apenas se a animação estiver ativa)
+    % Aqui eh onde atualizo a tela na parte de simulacao em tempo real
     if p.sim_real_time == 1 && mod(contador_loops, passos_por_quadro) == 0
         pos = [X_current(1); X_current(2); X_current(3)];
         phi = X_current(7); theta = X_current(8); psi = X_current(9);
@@ -130,9 +122,7 @@ else
     fprintf('Cálculo numérico finalizado em %.2f segundos.\n', tempo_decorrido_total);
 end
 
-% =========================================================================
 % Graficos
-% =========================================================================
 disp('Gerando relatórios e gráficos de análise...');
 plot_graphs(t_log, X_log, p, 1); 
 plot_graphs(t_log, X_log, p, 2); 

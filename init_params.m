@@ -2,7 +2,7 @@ function [p, X0, tspan] = init_params()
     % Configuracao da simulacao
     % 0 -> Simulacao "instantanea"
     % 1 -> Animacao 3D em tempo real
-    p.sim_real_time = 0;
+    p.sim_real_time = 1;
     p.map_size = 20;
 
     % Parametros do drone (DJI mini Mavic)
@@ -25,46 +25,41 @@ function [p, X0, tspan] = init_params()
     % Tempo de simulacao 
     tspan = [0 50]; % em segundos
 
-    % =========================================================
-    % MODELO DE TURBULÊNCIA DE DRYDEN (Vento Realista e Aleatório)
-    % =========================================================
-    % Embaralha a semente aleatória com base no relógio do sistema
+    % modelo de Dryden
     rng('shuffle'); 
     
     p.t_wind = linspace(tspan(1), tspan(2), 2000); 
-    dt = p.t_wind(2) - p.t_wind(1); % Passo de tempo
+    dt = p.t_wind(2) - p.t_wind(1); 
     
-    % Parâmetros Atmosféricos (Altitude baixa / Voo pairado)
-    L_u = 10.0;      % Escala de comprimento da turbulência (m)
-    sigma_u = 1.06;  % Intensidade da turbulência (m/s) - Clima moderado
-    V_nominal = 1.0; % Velocidade de referência para o filtro (m/s)
+    % Parametos que quero para o vento
+    L_u = 10.0;      % Complimento de turbulencia (m)
+    sigma_u = 1.06;  % Intensidade (m/s)
+    V_nominal = 1.0; % Velocidade (m/s)
     
-    % Função de Transferência de Dryden (Espectro Longitudinal)
+    % Funcao de transferencia longitudinal de Dryden
     numerador = sigma_u * sqrt((2 * L_u) / (pi * V_nominal));
     denominador = [(L_u / V_nominal), 1];
     filtro_dryden = tf(numerador, denominador);
     
-    % Gerando o ruído branco e passando pelo filtro (Eixo X)
+    % Ruido branco e filtro
     ruido_branco_x = randn(1, length(p.t_wind)) / sqrt(dt);
     rajadas_x = lsim(filtro_dryden, ruido_branco_x, p.t_wind)';
     
-    % Sorteia um vento constante base entre 0.5 e 2.5 m/s para o eixo X
+    % Sorteio de vento para eixo X
     vento_base_x = 0.5 + (2.0 * rand()); 
     p.V_wind_x = vento_base_x + rajadas_x; 
     
-    % Repetindo o processo para o Eixo Y (apenas rajadas transversais menores)
+    % No eixo Y
     ruido_branco_y = randn(1, length(p.t_wind)) / sqrt(dt);
     rajadas_y = lsim(filtro_dryden, ruido_branco_y, p.t_wind)';
-    
-    % Sorteia um vento constante base entre -1.0 e 1.0 m/s para o eixo Y
     vento_base_y = -1.0 + (2.0 * rand());
     p.V_wind_y = vento_base_y + (0.5 * rajadas_y); 
-    % =========================================================
+
 
     % Posicao inicial do drone 
     X0 = zeros(19, 1);
     X0(1) = 1; % X
-    X0(2) = 4; % Y
+    X0(2) = 1; % Y
     X0(3) = 1; % Z
 
     % Variavel que define testes de modos de navegacao
@@ -72,11 +67,11 @@ function [p, X0, tspan] = init_params()
     p.modo_nav = 3;
     
     % Destino no modo 1 [x, y, z, psi]
-    p.ref = [17; 17; 17; 0]; 
+    p.ref = [4.5; 3; 4.5; 0]; 
     
     % Matriz que contem as coordenadas dos destinos do modo 3
-    p.waypoints = [1,  1,  15,  15;   % Coordenadas X
-                   4,  15,  15,  4;   % Coordenadas Y
+    p.waypoints = [2,  1,  3,  15;   % Coordenadas X
+                   4,  15,  9,  4;   % Coordenadas Y
                    7,  7, 0.03,  0.03;   % Coordenadas Z
                    0,  0,  0,  0];  % Angulo Psi
 
@@ -85,7 +80,7 @@ function [p, X0, tspan] = init_params()
     p.Kp_x = 0.8; p.Kd_x = 1.5; p.Ki_x = 1.5;
     p.Kp_y = 0.8; p.Kd_y = 1.5; p.Ki_y = 1.5;
     
-    % Malha interna (relativa ao comportamento do drone)
+    % Malha interna da aeronave
     p.Kp_phi = 0.02;   p.Kd_phi = 0.005;
     p.Kp_theta = 0.02; p.Kd_theta = 0.005;
     p.Kp_psi = 0.02;   p.Kd_psi = 0.005;

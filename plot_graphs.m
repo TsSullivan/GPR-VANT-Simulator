@@ -57,7 +57,7 @@ function plot_graphs(t, X, p, simType)
         % Dinamica dos rotores e erro de posicao
         figure('Name', 'Resultados: Rotores e Erro', 'NumberTitle', 'off', 'Position', [150, 150, 800, 750]);
         
-        subplot(2, 1, 1);
+        subplot(2, 2, 1);
         plot(t, X(:,13), t, X(:,14), t, X(:,15), t, X(:,16), 'LineWidth', 1.5);
         title('Dinâmica dos rotores'); 
         legend('\omega_1', '\omega_2', '\omega_3', '\omega_4', 'Location', 'best'); 
@@ -65,7 +65,7 @@ function plot_graphs(t, X, p, simType)
         xlabel('Tempo (s)'); 
         ylabel('Velocidade Angular (rad/s)');
         
-        subplot(2, 1, 2);
+        subplot(2, 2, 2);
 
         N = length(t);
         erro_x = zeros(N, 1);
